@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>websocket通讯</title>
+    <!-- 自定义吐丝必要样式 -->
+    <!-- <link rel="stylesheet" type="text/css" href="plugin/iziToast/css/iziToast.min.css" /> -->
+</head>
+<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+<!-- 自定义吐丝必要js，需在Spring_Websocket前引入 -->
+<!-- <script type="text/javascript" src="plugin/iziToast/js/iziToast.min.js"></script> -->
+<script type="text/javascript" src="js/Spring_WebSocket.js"></script>
+<script id="q">
+    var socket;
+    function openSocket() {
+        socket = new Spring_WebSocket(
+        {
+            iziToastUrl: {
+                css: `plugin/iziToast/css/iziToast.min.css`,
+                js: `plugin/iziToast/js/iziToast.min.js`
+            },
+            log: true, 
+            url: 'ws://localhost:9999/demo/imserver/'+$("#userId").val(),
+            beforeSend: function(data){
+                //this.showTip('info', {title: '准备发送数据', message: '发送的数据'});
+            },
+            afterSend: function(data){
+                this.showTip('success', {title: '发送数据成功', message: '数据发送成功'});
+            },
+            open: function(data){
+                console.log('open', data.type, this);
+                this.Spring_WebSocket.showTip('success', {title: '连接服务器', message: '连接服务器成功'});
+            },
+            message: function(msg){
+                console.log('message,收到消息：', msg.data, this);
+                if(msg.data.indexOf("{") != -1){
+                    let text = JSON.parse(msg.data);
+                this.Spring_WebSocket.showTip('info', {title: '收到数据', message: `来自${text.fromUserId}：${text.contentText}`});
+                }else{
+                    this.Spring_WebSocket.showTip('info', {title: '收到数据', message: msg.data});
+                }
+                
+            },
+            error: function(data){
+                console.log('error', data, this);
+                this.Spring_WebSocket.showTip('error', {title: '错误！！', message: '发生错误'});
+            },
+            close: function(){
+                console.log('close', data, this);
+                this.Spring_WebSocket.showTip('warning', {title: '连接关闭', message: '已经和服务器断开连接'});
+            },
+            tip: {
+                showTip: true,
+                maxSize: 10,
+                customTip: {
+                    class: 'test',
+                    color: 'dark',
+                    //icon: 'icon-contacts',
+                    title: 'Hello!',
+                    message: 'Do you like it?',
+                    position: 'topRight',//'topCenter',
+                    transitionIn: 'flipInX',
+                    transitionOut: 'flipOutX',
+                    progressBarColor: 'rgb(0, 255, 184)',
+                    //image: 'img/avatar.jpg',
+                    imageWidth: 70,
+                    //timeout: 10000000,
+                    //layout:2,
+                    onClose: function(){
+                        socket.showTip('info',{title: '关闭了', message: '消息关闭'});
+                    },
+                    iconColor: 'rgb(0, 255, 184)'
+                }
+            }
+            
+        });
+    }
+    function sendMessage() {
+        if(typeof(WebSocket) == "undefined") {
+            console.log("您的浏览器不支持WebSocket");
+        }else {
+            console.log("您的浏览器支持WebSocket");
+            //console.log('{"toUserId":"'+$("#toUserId").val()+'","contentText":"'+$("#contentText").val()+'"}');
+            socket.send('{"toUserId":"'+$("#toUserId").val()+'","contentText":"'+$("#contentText").val()+'"}');
+        }
+    }
+</script>
+<body>
+<p>【userId】：<div><input id="userId" name="userId" type="text" value="20"></div>
+<p>【toUserId】：<div><input id="toUserId" name="toUserId" type="text" value="10"></div>
+<p>【toUserId】：<div><input id="contentText" name="contentText" type="text" value="hello websocket"></div>
+<p>【操作】：<div><a onclick="openSocket()">开启socket</a></div>
+<p>【操作】：<div><a onclick="sendMessage()">发送消息</a></div>
+</body>
+
+</html>
