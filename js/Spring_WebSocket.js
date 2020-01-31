@@ -158,7 +158,8 @@
      * @return {[type]} Spring_WebSocket  [返回当前实例]
      */
     Spring_WebSocket.prototype.flush = function(){
-        this.clone();
+        let that = this;
+        this.close();
         this.socket = new WebSocket(this.args.url);
         // 双向绑定
         this.socket.Spring_WebSocket = this;
@@ -166,7 +167,10 @@
         this.listeners(this.socket, "open", this.args.open)
         .listeners(this.socket, "message", this.args.message)
         .listeners(this.socket, "close", this.args.close)
-        .listeners(this.socket, "error", this.args.error);
+        .listeners(this.socket, "error", this.args.error)
+            .listeners(window, 'beforeunload',function () {
+                that.close();
+            });
         return this;
     };
 
@@ -194,7 +198,7 @@
      * 关闭websocket
      * @return {[type]} Spring_WebSocket  [返回当前实例]
      */
-    Spring_WebSocket.prototype.clone = function(){
+    Spring_WebSocket.prototype.close = function(){
         if(this.socket){
             this.socket.close();
         }
